@@ -1,76 +1,181 @@
-编译与运行步骤
-一、工程编译
-进入工作空间根目录
-bash
-运行
+
+## 环境准备
+
+```bash
 cd ~/ckl_ros_class_ws
-编译整个工作空间
-bash
-运行
 catkin_make
-加载环境变量（已配置到~/.bashrc，新终端可直接使用）
-bash
-运行
 source devel/setup.bash
-二、硬件启动（所有传感器实验必备）
-启动智行 - W2A 机器人硬件通信，建立 ROS 与机器人控制器的连接：
-bash
-运行
-roslaunch upros_bringup bringup_w2a.launch
-该命令需保持运行，单独打开一个终端执行。
-三、分实验运行指令
-（一）ROS 基础通信实验
-标准消息通信（C++）
-bash
-运行
-# 终端1：启动发布者
+```
+
+---
+
+## 启动指令
+
+### 5.1 C++ 标准消息（Topic）
+
+```bash
+# 终端1 — 启动 ROS Master
+roscore
+
+# 终端2 — 发布者
 rosrun my_class_pkg ros_publisher_node
-# 终端2：启动订阅者
+
+# 终端3 — 订阅者
 rosrun my_class_pkg ros_subscriber_node
-# 或一键启动（Launch文件）
-roslaunch my_class_pkg bringup_topic.launch
-自定义消息通信（C++）
-bash
-运行
+
+# 或查看话题内容
+rostopic echo /my_topic
+```
+
+---
+
+### 5.2 Python 标准消息（Topic）
+
+```bash
+# 终端1
+roscore
+
+# 终端2 — 发布者
+rosrun my_class_pkg ros_publisher_node.py
+
+# 终端3 — 订阅者
+rosrun my_class_pkg ros_subscriber_node.py
+```
+
+---
+
+### 5.3 C++ 自定义消息（MyMessage）
+
+```bash
+# 终端1
+roscore
+
+# 终端2 — 自定义消息发布者
 rosrun my_class_pkg msg_publisher_node
+
+# 终端3 — 自定义消息订阅者
 rosrun my_class_pkg msg_subscriber_node
-自定义服务通信（C++/Python）
-bash
-运行
-# C++版
+
+# 或查看话题内容
+rostopic echo /my_msg_topic
+```
+
+---
+
+### 5.5 Launch 文件一键启动（发布者 + 订阅者）
+
+```bash
+roslaunch my_class_pkg bringup_topic.launch
+```
+
+> 无需单独启动 roscore，launch 文件会自动处理。
+
+---
+
+### 服务实验（Service）
+
+#### C++ 服务
+
+```bash
+# 终端1
+roscore
+
+# 终端2 — 服务端
 rosrun my_class_pkg ros_server_node
+
+# 终端3 — 客户端（一次性请求）
 rosrun my_class_pkg ros_client_node
-# Python版
+```
+
+#### Python 服务
+
+```bash
+# 终端1
+roscore
+
+# 终端2 — 服务端
 rosrun my_class_pkg ros_server.py
+
+# 终端3 — 客户端
 rosrun my_class_pkg ros_client.py
-自定义动作通信（C++/Python）
-bash
-运行
-# C++版
+```
+
+---
+
+### 动作实验（Action）
+
+#### C++ 动作
+
+```bash
+# 终端1
+roscore
+
+# 终端2 — 动作服务端
 rosrun my_class_pkg ros_action_server
+
+# 终端3 — 动作客户端
 rosrun my_class_pkg ros_action_client
-# Python版
+```
+
+#### Python 动作
+
+```bash
+# 终端1
+roscore
+
+# 终端2 — 动作服务端
 rosrun my_class_pkg ros_action_server.py
+
+# 终端3 — 动作客户端
 rosrun my_class_pkg ros_action_client.py
-（二）传感器应用实验
-碰撞传感器实验
-bash
-运行
-# 仅订阅数据
+```
+
+---
+
+## 验证自定义消息 / 服务 / 动作
+
+```bash
+source ~/d_ros_class_ws/devel/setup.bash
+
+rosmsg show my_class_pkg/MyMessage
+rossrv show my_class_pkg/MyServiceMsg
+rosmsg show my_class_pkg/MyActionGoal
+```
+
+---
+
+## 传感器实验
+
+> 所有传感器节点均需先启动硬件通信：
+> ```bash
+> roslaunch upros_bringup bringup_w2a.launch
+> ```
+
+### 碰撞传感器（Bump Sensor）
+
+```bash
+# 订阅并打印碰撞传感器数据
 rosrun my_class_pkg ros_bump_node
-# 碰撞避障功能
+
+# 基于碰撞传感器的自动避障（触碰后后退+转向）
 rosrun my_class_pkg bump_avoidance_node
-超声 - TOF 传感器实验
-bash
-运行
-# 仅订阅超声数据
+```
+
+### 超声波 / TOF 传感器
+
+```bash
+# 订阅并打印超声波距离数据（左/前/右）
 rosrun my_class_pkg ros_sonic_node
-# TOF避障功能
+
+# 基于 TOF 传感器的自动避障（距离 < 0.3m 时转向）
 rosrun my_class_pkg tof_avoidance_node
-IMU 传感器实验
-bash
-运行
-# 仅订阅IMU数据
+```
+
+### IMU 传感器
+
+```bash
 rosrun my_class_pkg ros_imu_node
-# IMU自旋控制（180°）
+
+# 基于 IMU 自旋控制（旋转精确 180°后自动停止）
 rosrun my_class_pkg imu_spin_control_node
+```
